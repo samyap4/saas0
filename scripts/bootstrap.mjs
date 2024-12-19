@@ -131,14 +131,17 @@ try {
       client_id: managementClient.client_id,
       audience: `https://${AUTH0_DOMAIN}/api/v2/`,
       scope: [
+        // Users
         "read:users",
         "update:users",
         "delete:users",
         "create:users",
+        // Connections
         "read:connections",
         "update:connections",
         "delete:connections",
         "create:connections",
+        // Organizations
         "read:organizations_summary",
         "read:organizations",
         "update:organizations",
@@ -157,10 +160,19 @@ try {
         "create:organization_invitations",
         "read:organization_invitations",
         "delete:organization_invitations",
+        // MFA Enrollment
         "read:guardian_factors",
         "read:authentication_methods",
         "delete:authentication_methods",
-        "create:guardian_enrollment_tickets"
+        "create:guardian_enrollment_tickets",
+        // SCIM
+        "create:scim_token",
+        "read:scim_token",
+        "delete:scim_token",
+        "read:scim_config",
+        "create:scim_config",
+        "update:scim_config",
+        "delete:scim_config",
       ]
     }),
   ];
@@ -501,8 +513,17 @@ const createUniversalLoginTheme = ora({
 }).start()
 
 try {
-  await $`cat ./themes/universal-login.json`
-    .pipe`auth0 api post branding/themes`
+  const theme = await readFile("./themes/universal-login.json", {
+    encoding: "utf-8",
+  })
+
+  // prettier-ignore
+  const createUniversalLoginThemeArgs = [
+    "api", "post", "branding/themes",
+    "--data", theme,
+  ];
+
+  await $`auth0 ${createUniversalLoginThemeArgs}`
 
   createUniversalLoginTheme.succeed()
 } catch (e) {
